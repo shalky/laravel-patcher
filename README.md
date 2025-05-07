@@ -34,10 +34,55 @@ php artisan patch:install
 To generate a new patch, use:
 
 ```bash
-php artisan make:patch PatchName
+php artisan make:patch ChangeUserEmailField
 ```
 
-This generates a patch file in the `database/patches` directory with methods `up()`, `down()`, `shouldRun()`, and `__invoke()`.
+This generates a patch file in the `database/patches` directory with a timestamped filename and the following methods:
+
+### Patch Class Structure
+
+Each patch class must implement the following methods:
+
+- `up()`: The logic to apply the patch (e.g., data transformations, inserts, updates).
+- `down()`: The logic to reverse the patch (e.g., revert any changes made in `up()`).
+- `shouldRun()`: Returns a boolean to determine if the patch should run. Defaults to `true`. You can override it to skip the patch conditionally.
+- `__invoke()`: This method runs `up()` only if `shouldRun()` returns true. It is called automatically by the patch runner.
+
+Example patch:
+
+```php
+<?php
+
+namespace Database\Patches;
+
+use DanieleMontecchi\LaravelDataPatcher\Contracts\Patch;
+use App\Models\User;
+
+class ChangeUserEmailField implements Patch
+{
+    public function up(): void
+    {
+        User::query()->whereNull('email')->update(['email' => 'default@example.com']);
+    }
+
+    public function down(): void
+    {
+        User::query()->where('email', 'default@example.com')->update(['email' => null]);
+    }
+
+    public function shouldRun(): bool
+    {
+        return true;
+    }
+
+    public function __invoke(): void
+    {
+        if ($this->shouldRun()) {
+            $this->up();
+        }
+    }
+}
+```
 
 ### Running Patches
 
@@ -72,11 +117,11 @@ php artisan patch:rollback --pretend
 ## Commands Overview
 
 | Command                 | Description                                     |
-|-------------------------|-------------------------------------------------|
-| `make:patch`            | Generates a new patch class from stub           |
-| `patch`                 | Executes all pending patches                    |
-| `patch:rollback`        | Rollbacks the last applied patch                |
-| `patch:install`         | Creates the necessary patches tracking table    |
+|------------------------|-------------------------------------------------|
+| `make:patch`           | Generates a new patch class from stub          |
+| `patch`                | Executes all pending patches                   |
+| `patch:rollback`       | Rollbacks the last applied patch               |
+| `patch:install`        | Creates the necessary patches tracking table   |
 
 ---
 
