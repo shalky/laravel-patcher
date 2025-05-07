@@ -1,12 +1,5 @@
 <?php
 
-use DanieleMontecchi\LaravelDataPatcher\DataPatcherServiceProvider;
+use Tests\TestCase;
 
-uses(Tests\TestCase::class)->in('Feature', 'Unit');
-
-function getPackageProviders($app)
-{
-    return [
-        DataPatcherServiceProvider::class,
-    ];
-}
+uses(TestCase::class)->in('Feature');
