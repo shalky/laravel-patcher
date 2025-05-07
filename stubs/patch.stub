@@ -1,0 +1,33 @@
+<?php
+
+namespace Database\Patches;
+
+use DanieleMontecchi\LaravelDataPatcher\Contracts\Patch;
+
+/**
+ * Class {{ class }}
+ */
+class {{ class }} implements Patch
+{
+    public function up(): void
+    {
+        //
+    }
+
+    public function down(): void
+    {
+        //
+    }
+
+    public function shouldRun(): bool
+    {
+        return true;
+    }
+
+    public function __invoke(): void
+    {
+        if ($this->shouldRun()) {
+            $this->up();
+        }
+    }
+}
