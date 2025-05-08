@@ -27,7 +27,6 @@ class PatcherManager
         $applied = array_map('strtolower', DB::table('patches')->pluck('name')->all());
         $all = $this->getPatchFiles();
         $batch = DB::table('patches')->max('batch') + 1;
-        $ran = [];
 
         $pending = array_filter($all, fn($patch) => !in_array(strtolower($patch), $applied));
 
@@ -48,7 +47,8 @@ class PatcherManager
                 $patch,
                 $patchName,
                 $batch,
-                $shouldRun
+                $shouldRun,
+                $pretend
             ) {
                 DB::table('patches')->insert([
                     'name' => $patchName,
@@ -57,7 +57,7 @@ class PatcherManager
                     'is_applied' => $shouldRun,
                 ]);
 
-                if ($shouldRun) {
+                if ($shouldRun && !$pretend) {
                     ($patch)();
                 }
 
@@ -114,10 +114,10 @@ class PatcherManager
     public function resolvePatch(string $name): Patch
     {
         $file = "$this->patchPath/{$name}.php";
-        $result = require $file;
+        $result = require_once $file;
 
         if (!$result instanceof Patch) {
-            throw new \RuntimeException("Patch file [{$file}] must return an instance of Patch using an anonymous class.");
+            abort("Patch file [{$file}] must return an instance of Patch using an anonymous class.");
         }
 
         return $result;
