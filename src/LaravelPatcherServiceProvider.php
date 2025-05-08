@@ -4,7 +4,6 @@ namespace DanieleMontecchi\LaravelPatcher;
 
 use DanieleMontecchi\LaravelPatcher\Commands\MakePatchCommand;
 use DanieleMontecchi\LaravelPatcher\Commands\PatcherRunCommand;
-use DanieleMontecchi\LaravelPatcher\Commands\PatcherInstallCommand;
 use DanieleMontecchi\LaravelPatcher\Commands\PatcherRollbackCommand;
 use DanieleMontecchi\LaravelPatcher\Managers\PatcherManager;
 use Illuminate\Support\ServiceProvider;
@@ -32,17 +31,13 @@ class LaravelPatcherServiceProvider extends ServiceProvider
     public function boot(): void
     {
         if ($this->app->runningInConsole()) {
+            $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+
             $this->commands([
                 MakePatchCommand::class,
                 PatcherRunCommand::class,
                 PatcherRollbackCommand::class,
-                PatcherInstallCommand::class,
             ]);
-
-            $this->publishes([
-                __DIR__ . '/../database/migrations/' => database_path('migrations'),
-                __DIR__ . '/../stubs/' => base_path('stubs'),
-            ], 'laravel-patcher');
         }
     }
 }

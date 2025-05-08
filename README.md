@@ -7,168 +7,118 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](LICENSE.md)
 [![Documentation](https://img.shields.io/badge/docs-available-brightgreen.svg?style=flat-square)](https://danielemontecchi.github.io/laravel-patcher)
 
-**Laravel Patcher** is a package that allows you to define and execute patch classes — small, versioned units of logic meant to run once. Patches can be used for anything: updating data, modifying files, clearing caches, running jobs, fixing logic issues after deployment, and more.
+**Laravel Patcher** is a clean and predictable system for applying one-time patches to your Laravel application.
+It works similarly to migrations but is designed for operational, data-related, or procedural logic that you need to run once and track.
 
-Inspired by [Taylor Otwell’s patching concept](https://x.com/taylorotwell/status/1387766514674192384?s=46), this package formalizes that idea into a reliable, testable, and traceable tool.
+Inspired by [Taylor Otwell’s patching concept](https://x.com/taylorotwell/status/1387766514674192384?s=46), this package formalizes and extends the idea to support a wide variety of use cases, including conditionally skipped patches, tracking applied states, and batch rollback.
+
+---
+
+## Features
+
+- Runs patch classes similar to migrations
+- Supports anonymous class patches using `return new class extends Patch`
+- Automatically tracks execution via the `patches` database table
+- Supports conditional execution via `shouldRun()`
+- Distinguishes executed vs skipped patches using `is_applied`
+- CLI output styled identically to `php artisan migrate`
+- Allows rollback by batch
 
 ---
 
 ## Installation
 
-Install via Composer:
-
 ```bash
 composer require danielemontecchi/laravel-patcher
 ```
 
-Then, run the install command to create the patches tracking table:
+Laravel will automatically register the service provider.
+
+To create the required database table, run:
 
 ```bash
-php artisan patcher:install
+php artisan migrate
 ```
+
+### Patch Table Format
+
+The `patches` table includes:
+
+| Column      | Type      | Description                                                         |
+|-------------|-----------|---------------------------------------------------------------------|
+| id          | bigint    | Auto-increment primary key                                          |
+| name        | string    | Patch filename (without `.php`)                                    |
+| batch       | int       | Batch number (like migrations)                                     |
+| is_applied  | boolean   | Whether `shouldRun()` returned `true` and the patch was executed   |
+| applied_at  | timestamp | When the patch was recorded                                        |
+
+> Skipped patches are still recorded, but with `is_applied = false`.
 
 ---
 
-## What can you use patches for?
-
-Patches are ideal for any one-time execution logic, such as:
-
-- Transforming or fixing **database records**
-- Running **filesystem cleanup**
-- Executing **jobs**, events, or listeners
-- Calling **external APIs** or webhooks
-- Clearing or regenerating **application caches**
-- Hotfixing **business logic** post-release
-- Updating values in `.env`, config files, or external services
-
-You decide what goes in a patch. It’s like a migration — but for **everything else**.
-
----
-
-## Usage
-
-### Creating a Patch
+## Creating a Patch
 
 ```bash
-php artisan make:patch FixUserEmails
+php artisan make:patch FixUsernames
 ```
 
-This generates a new patch file under `database/patches/`, timestamped and containing the following methods:
-
-### Patch Class Structure
-
-```php
-public function up(): void
-```
-Logic to apply the patch (data, logic, file operations, etc.).
-
-```php
-public function down(): void
-```
-Logic to reverse the patch.
-
-```php
-public function shouldRun(): bool
-```
-Determines if the patch should run. Defaults to `true`. You can override it for conditional logic.
-
-```php
-public function __invoke(): void
-```
-Runs the patch by calling `up()` only if `shouldRun()` returns `true`. You should never call `up()` directly — always invoke the class.
-
-#### Example
+This will generate a new file in `database/patches/`:
 
 ```php
 <?php
 
-namespace Database\Patches;
-
 use DanieleMontecchi\LaravelPatcher\Contracts\Patch;
-use App\Models\User;
 
-class FixUserEmails implements Patch
-{
-    public function up(): void
-    {
-        User::query()->whereNull('email')->update(['email' => 'default@example.com']);
+return new class extends Patch {
+    public function shouldRun(): bool {
+        return true; // Logic to determine if patch should run
     }
 
-    public function down(): void
-    {
-        User::query()->where('email', 'default@example.com')->update(['email' => null]);
+    public function up(): void {
+        // Logic to apply
     }
 
-    public function shouldRun(): bool
-    {
-        return User::whereNull('email')->exists();
+    public function down(): void {
+        // Logic to rollback
     }
-
-    public function __invoke(): void
-    {
-        if ($this->shouldRun()) {
-            $this->up();
-        }
-    }
-}
+};
 ```
+
+> Patches must return an anonymous class instance that extends `Patch`.
 
 ---
 
-## Running Patches
+## Executing Patches
 
 ```bash
-php artisan patcher:run
+php artisan patch
 ```
-Runs all unapplied patches in chronological order.
+
+Executes all unapplied patches, skipping those already registered in the `patches` table. Patches for which `shouldRun()` returns `false` are marked as skipped and recorded accordingly.
+
+---
+
+## Rolling Back Patches
 
 ```bash
-php artisan patcher:run --pretend
+php artisan patch:rollback
 ```
-Previews which patches would be applied.
 
----
+Rolls back the latest batch of applied patches (only those where `is_applied = true`).
 
-## Rolling Back
+Use the `--step=N` option to rollback multiple batches:
 
 ```bash
-php artisan patcher:rollback
+php artisan patch:rollback --step=2
 ```
-Rolls back the last applied patch (calls `down()` and removes it from the table).
-
-```bash
-php artisan patcher:rollback --pretend
-```
-Previews which patch would be rolled back.
-
----
-
-## Artisan Commands
-
-| Command            | Description                                       |
-|--------------------|---------------------------------------------------|
-| `make:patch`       | Generates a new patch class from stub             |
-| `patcher:run`      | Executes all pending patches                      |
-| `patcher:rollback` | Rolls back the last applied patch                 |
-| `patcher:install`  | Creates the `patches` tracking table              |
-
----
-
-## Best Practices
-
-- Use patches for **production-safe**, **idempotent**, or **conditional** logic.
-- Never assume a patch will be run only once — use `shouldRun()` as a guard.
-- Don’t use patches for schema changes — use migrations for that.
-- Group patches logically and keep them versioned in source control.
-
----
-
-## Contributing
-
-If you find a bug or want to improve this package, feel free to open an issue or submit a PR. Feedback and contributions are welcome.
 
 ---
 
 ## License
 
-Laravel Patcher is open-source software licensed under the [MIT license](LICENSE.md).
+Laravel Patcher is open-source software licensed under the **MIT license**.
+See the [LICENSE.md](LICENSE.md) file for full details.
+
+---
+
+Made with ❤️ by [Daniele Montecchi](https://danielemontecchi.com)

@@ -7,7 +7,7 @@ use DanieleMontecchi\LaravelPatcher\Contracts\Patch;
 /**
  * Class {{ class }}
  */
-class {{ class }} implements Patch
+return new class extends Patch
 {
     public function up(): void
     {
@@ -23,11 +23,4 @@ class {{ class }} implements Patch
     {
         return true;
     }
-
-    public function __invoke(): void
-    {
-        if ($this->shouldRun()) {
-            $this->up();
-        }
-    }
-}
+};

@@ -6,41 +6,37 @@ use DanieleMontecchi\LaravelPatcher\Managers\PatcherManager;
 use Illuminate\Console\Command;
 
 /**
- * Class PatcherRollbackCommand
- *
- * Artisan command to rollback the last applied database patch.
+ * Rollback the last executed patch batches.
  */
 class PatcherRollbackCommand extends Command
 {
     /**
-     * The console command signature.
+     * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'patcher:rollback {--pretend : Show rollback without running}';
+    protected $signature = 'patcher:rollback {--step=1 : Number of batches to roll back}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Rollback the last applied database patch';
+    protected $description = 'Rollback the last executed patch batches.';
 
     /**
      * Execute the console command.
      *
-     * @param \DanieleMontecchi\LaravelPatcher\Managers\PatcherManager $patcher
+     * @param PatcherManager $manager
+     * @return int
      */
-    public function handle(PatcherManager $patcher): void
+    public function handle(PatcherManager $manager): int
     {
-        $pretend = $this->option('pretend');
+        $steps = (int)$this->option('step');
 
-        $patcher->rollback($pretend);
+        $manager->setCommand($this);
+        $manager->rollback($steps);
 
-        if ($pretend) {
-            $this->info('Patch rollback command executed in pretend mode. No rollback performed.');
-        } else {
-            $this->info('Last patch rollback executed successfully.');
-        }
+        return self::SUCCESS;
     }
 }

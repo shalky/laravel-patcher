@@ -4,40 +4,39 @@ namespace DanieleMontecchi\LaravelPatcher\Commands;
 
 use DanieleMontecchi\LaravelPatcher\Managers\PatcherManager;
 use Illuminate\Console\Command;
-use Illuminate\Console\Concerns\InteractsWithIO;
 
 /**
- * Class PatcherRunCommand
- *
- * Artisan command to run pending database patches.
+ * Execute all unapplied patches, grouped in a new batch.
  */
 class PatcherRunCommand extends Command
 {
-    use InteractsWithIO;
-
     /**
-     * The console command signature.
+     * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'patcher:run {--pretend : Show patches without running}';
+    protected $signature = 'patcher:run {--pretend : Show patches without executing them}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Run all pending database patches';
+    protected $description = 'Execute all unapplied patches, grouped by batch.';
 
     /**
      * Execute the console command.
      *
-     * @param \DanieleMontecchi\LaravelPatcher\Managers\PatcherManager $patcher
+     * @param PatcherManager $manager
+     * @return int
      */
-    public function handle(PatcherManager $patcher): void
+    public function handle(PatcherManager $manager): int
     {
-        $patcher->setCommand($this);
-        $patcher->run($this->option('pretend'));
-    }
+        $pretend = $this->option('pretend');
 
+        $manager->setCommand($this);
+        $manager->runAll($pretend);
+
+        return self::SUCCESS;
+    }
 }

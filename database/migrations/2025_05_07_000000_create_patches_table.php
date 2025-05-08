@@ -10,7 +10,9 @@ return new class extends Migration {
         Schema::create('patches', function (Blueprint $table) {
             $table->id();
             $table->string('name')->unique();
+            $table->unsignedInteger('batch');
             $table->timestamp('applied_at')->nullable();
+            $table->boolean('is_applied')->default(false);
         });
     }
 

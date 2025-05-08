@@ -3,31 +3,39 @@
 namespace DanieleMontecchi\LaravelPatcher\Contracts;
 
 /**
- * Interface Patch
- *
- * Defines the methods that must be implemented for data patch classes.
+ * Abstract base class for all patches.
+ * Implement up(), down() and shouldRun(). Do not override __invoke().
  */
-interface Patch
+abstract class Patch
 {
     /**
-     * Apply the patch.
+     * Execute the patch if it should run.
      */
-    public function up(): void;
+    public function __invoke(): void
+    {
+        if ($this->shouldRun()) {
+            $this->up();
+        }
+    }
 
     /**
-     * Revert the patch.
+     * Apply the patch logic.
+     *
+     * @return void
      */
-    public function down(): void;
+    abstract public function up(): void;
 
     /**
-     * Determine if the patch should run.
+     * Revert the patch logic.
+     *
+     * @return void
+     */
+    abstract public function down(): void;
+
+    /**
+     * Determine whether the patch should run.
      *
      * @return bool
      */
-    public function shouldRun(): bool;
-
-    /**
-     * Execute the patch logic conditionally.
-     */
-    public function __invoke(): void;
+    abstract public function shouldRun(): bool;
 }
