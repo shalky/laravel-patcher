@@ -1,29 +1,31 @@
 {
   "name": "danielemontecchi/laravel-patcher",
-  "description": "Run one-off patch classes after deployment to fix data, update logic, clear cache, or run any post-deploy operation. Think of it as migrations, but for everything else.",
+  "description": "A predictable system for applying one-time operational or data patches in Laravel—trackable, skippable, and rollback-ready.",
   "type": "library",
-  "keywords": [
-    "laravel",
-    "patches",
-    "patcher",
-    "post-deploy",
-    "hotfix",
-    "data migration",
-    "automation",
-    "deployment",
-    "operations"
-  ],
   "license": "MIT",
   "authors": [
     {
       "name": "Daniele Montecchi",
-      "email": "daniele.montecchi@example.com",
-      "role": "Developer"
+      "email": "daniele@montecchi.me"
     }
   ],
+  "homepage": "https://danieelmontecchi.com",
+  "support": {
+    "issues": "https://github.com/danielemontecchi/laravel-patcher/issues"
+  },
+  "keywords": [
+    "laravel",
+    "patch",
+    "patching",
+    "migrations",
+    "one-time",
+    "rollback",
+    "artisan",
+    "data-operations"
+  ],
   "require": {
-    "php": "^8.2",
-    "illuminate/support": "^10.0 || ^11.0 || ^12.0"
+    "php": "^8.1 || ^8.2 || ^8.3 || ^8.4",
+    "illuminate/support": "^10.0|^11.0|^12.0"
   },
   "autoload": {
     "psr-4": {

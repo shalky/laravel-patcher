@@ -1,4 +1,9 @@
 <?php
+
+test('this is a dummy test just to check setup', function () {
+    expect(true)->toBeTrue();
+});
+
 //
 //use Illuminate\Support\Facades\DB;
 //use Illuminate\Support\Facades\File;
