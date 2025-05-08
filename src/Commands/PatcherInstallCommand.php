@@ -1,24 +1,24 @@
 <?php
 
-namespace DanieleMontecchi\LaravelDataPatcher\Commands;
+namespace DanieleMontecchi\LaravelPatcher\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Class PatchInstallCommand
+ * Class PatcherInstallCommand
  *
  * Artisan command to create the patches table if it doesn't exist.
  */
-class PatchInstallCommand extends Command
+class PatcherInstallCommand extends Command
 {
     /**
      * The console command signature.
      *
      * @var string
      */
-    protected $signature = 'patch:install';
+    protected $signature = 'patcher:install';
 
     /**
      * The console command description.

@@ -1,6 +1,6 @@
 <?php
 
-namespace DanieleMontecchi\LaravelDataPatcher\Contracts;
+namespace DanieleMontecchi\LaravelPatcher\Contracts;
 
 /**
  * Interface Patch

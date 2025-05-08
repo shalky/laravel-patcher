@@ -1,13 +1,15 @@
-# Laravel Data Patcher
+# Laravel Patcher
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/danielemontecchi/laravel-data-patcher.svg?style=flat-square)](https://packagist.org/packages/danielemontecchi/laravel-data-patcher)
-[![Total Downloads](https://img.shields.io/packagist/dt/danielemontecchi/laravel-data-patcher.svg?style=flat-square)](https://packagist.org/packages/danielemontecchi/laravel-data-patcher)
-[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/danielemontecchi/laravel-data-patcher/tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/danielemontecchi/laravel-data-patcher/actions/workflows/tests.yml)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=danielemontecchi_laravel-data-patcher&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=danielemontecchi_laravel-data-patcher)
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/danielemontecchi/laravel-patcher.svg?style=flat-square)](https://packagist.org/packages/danielemontecchi/laravel-patcher)
+[![Total Downloads](https://img.shields.io/packagist/dt/danielemontecchi/laravel-patcher.svg?style=flat-square)](https://packagist.org/packages/danielemontecchi/laravel-patcher)
+[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/danielemontecchi/laravel-patcher/tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/danielemontecchi/laravel-patcher/actions/workflows/tests.yml)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=danielemontecchi_laravel-patcher&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=danielemontecchi_laravel-patcher)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](LICENSE.md)
-[![Documentation](https://img.shields.io/badge/docs-available-brightgreen.svg?style=flat-square)](https://danielemontecchi.github.io/laravel-data-patcher)
+[![Documentation](https://img.shields.io/badge/docs-available-brightgreen.svg?style=flat-square)](https://danielemontecchi.github.io/laravel-patcher)
 
-Laravel Data Patcher is a Laravel package designed to manage data patches effectively, similar to migrations but specifically focused on data alterations post-migration. Inspired by the approach suggested by Taylor Otwell, this package offers structured, maintainable, and predictable handling of database patches.
+**Laravel Patcher** is a package that allows you to define and execute patch classes — small, versioned units of logic meant to run once. Patches can be used for anything: updating data, modifying files, clearing caches, running jobs, fixing logic issues after deployment, and more.
+
+Inspired by [Taylor Otwell’s patching concept](https://x.com/taylorotwell/status/1387766514674192384?s=46), this package formalizes that idea into a reliable, testable, and traceable tool.
 
 ---
 
@@ -16,14 +18,30 @@ Laravel Data Patcher is a Laravel package designed to manage data patches effect
 Install via Composer:
 
 ```bash
-composer require danielemontecchi/laravel-data-patcher
+composer require danielemontecchi/laravel-patcher
 ```
 
-Then, run the install command to create the patches table:
+Then, run the install command to create the patches tracking table:
 
 ```bash
-php artisan patch:install
+php artisan patcher:install
 ```
+
+---
+
+## What can you use patches for?
+
+Patches are ideal for any one-time execution logic, such as:
+
+- Transforming or fixing **database records**
+- Running **filesystem cleanup**
+- Executing **jobs**, events, or listeners
+- Calling **external APIs** or webhooks
+- Clearing or regenerating **application caches**
+- Hotfixing **business logic** post-release
+- Updating values in `.env`, config files, or external services
+
+You decide what goes in a patch. It’s like a migration — but for **everything else**.
 
 ---
 
@@ -31,34 +49,45 @@ php artisan patch:install
 
 ### Creating a Patch
 
-To generate a new patch, use:
-
 ```bash
-php artisan make:patch ChangeUserEmailField
+php artisan make:patch FixUserEmails
 ```
 
-This generates a patch file in the `database/patches` directory with a timestamped filename and the following methods:
+This generates a new patch file under `database/patches/`, timestamped and containing the following methods:
 
 ### Patch Class Structure
 
-Each patch class must implement the following methods:
+```php
+public function up(): void
+```
+Logic to apply the patch (data, logic, file operations, etc.).
 
-- `up()`: The logic to apply the patch (e.g., data transformations, inserts, updates).
-- `down()`: The logic to reverse the patch (e.g., revert any changes made in `up()`).
-- `shouldRun()`: Returns a boolean to determine if the patch should run. Defaults to `true`. You can override it to skip the patch conditionally.
-- `__invoke()`: This method runs `up()` only if `shouldRun()` returns true. It is called automatically by the patch runner.
+```php
+public function down(): void
+```
+Logic to reverse the patch.
 
-Example patch:
+```php
+public function shouldRun(): bool
+```
+Determines if the patch should run. Defaults to `true`. You can override it for conditional logic.
+
+```php
+public function __invoke(): void
+```
+Runs the patch by calling `up()` only if `shouldRun()` returns `true`. You should never call `up()` directly — always invoke the class.
+
+#### Example
 
 ```php
 <?php
 
 namespace Database\Patches;
 
-use DanieleMontecchi\LaravelDataPatcher\Contracts\Patch;
+use DanieleMontecchi\LaravelPatcher\Contracts\Patch;
 use App\Models\User;
 
-class ChangeUserEmailField implements Patch
+class FixUserEmails implements Patch
 {
     public function up(): void
     {
@@ -72,7 +101,7 @@ class ChangeUserEmailField implements Patch
 
     public function shouldRun(): bool
     {
-        return true;
+        return User::whereNull('email')->exists();
     }
 
     public function __invoke(): void
@@ -84,60 +113,62 @@ class ChangeUserEmailField implements Patch
 }
 ```
 
-### Running Patches
+---
 
-Execute all pending patches with:
-
-```bash
-php artisan patch
-```
-
-Use the `--pretend` option to preview patches without applying:
+## Running Patches
 
 ```bash
-php artisan patch --pretend
+php artisan patcher:run
 ```
-
-### Rolling Back Patches
-
-Rollback the last applied patch using:
+Runs all unapplied patches in chronological order.
 
 ```bash
-php artisan patch:rollback
+php artisan patcher:run --pretend
 ```
-
-Preview rollback with `--pretend`:
-
-```bash
-php artisan patch:rollback --pretend
-```
+Previews which patches would be applied.
 
 ---
 
-## Commands Overview
+## Rolling Back
 
-| Command                 | Description                                     |
-|------------------------|-------------------------------------------------|
-| `make:patch`           | Generates a new patch class from stub          |
-| `patch`                | Executes all pending patches                   |
-| `patch:rollback`       | Rollbacks the last applied patch               |
-| `patch:install`        | Creates the necessary patches tracking table   |
+```bash
+php artisan patcher:rollback
+```
+Rolls back the last applied patch (calls `down()` and removes it from the table).
+
+```bash
+php artisan patcher:rollback --pretend
+```
+Previews which patch would be rolled back.
+
+---
+
+## Artisan Commands
+
+| Command            | Description                                       |
+|--------------------|---------------------------------------------------|
+| `make:patch`       | Generates a new patch class from stub             |
+| `patcher:run`      | Executes all pending patches                      |
+| `patcher:rollback` | Rolls back the last applied patch                 |
+| `patcher:install`  | Creates the `patches` tracking table              |
+
+---
+
+## Best Practices
+
+- Use patches for **production-safe**, **idempotent**, or **conditional** logic.
+- Never assume a patch will be run only once — use `shouldRun()` as a guard.
+- Don’t use patches for schema changes — use migrations for that.
+- Group patches logically and keep them versioned in source control.
 
 ---
 
 ## Contributing
 
-Contributions are welcome. Please open issues for discussions or submit pull requests for improvements and fixes.
+If you find a bug or want to improve this package, feel free to open an issue or submit a PR. Feedback and contributions are welcome.
 
 ---
 
 ## License
 
-Laravel Data Patcher is open-source software licensed under the MIT license.
-
-See [License File](LICENSE.md) for more information.
-
----
-
-Made with ❤️ by [Daniele Montecchi](https://github.com/danielemontecchi)
-
+Laravel Patcher is open-source software licensed under the [MIT license](LICENSE.md).

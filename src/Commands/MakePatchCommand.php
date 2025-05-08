@@ -1,6 +1,6 @@
 <?php
 
-namespace DanieleMontecchi\LaravelDataPatcher\Commands;
+namespace DanieleMontecchi\LaravelPatcher\Commands;
 
 use Illuminate\Console\GeneratorCommand;
 use Illuminate\Support\Str;
@@ -25,7 +25,7 @@ class MakePatchCommand extends GeneratorCommand
      *
      * @var string
      */
-    protected $description = 'Create a new data patch class';
+    protected $description = 'Create a new patch class';
 
     /**
      * Handle the command execution by appending a timestamp to the name argument.

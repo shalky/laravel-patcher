@@ -1,17 +1,17 @@
 <?php
 
-namespace DanieleMontecchi\LaravelDataPatcher\Commands;
+namespace DanieleMontecchi\LaravelPatcher\Commands;
 
-use DanieleMontecchi\LaravelDataPatcher\DatabasePatcher;
+use DanieleMontecchi\LaravelPatcher\Managers\PatcherManager;
 use Illuminate\Console\Command;
 use Illuminate\Console\Concerns\InteractsWithIO;
 
 /**
- * Class PatchCommand
+ * Class PatcherRunCommand
  *
  * Artisan command to run pending database patches.
  */
-class PatchCommand extends Command
+class PatcherRunCommand extends Command
 {
     use InteractsWithIO;
 
@@ -20,7 +20,7 @@ class PatchCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'patch {--pretend : Show patches without running}';
+    protected $signature = 'patcher:run {--pretend : Show patches without running}';
 
     /**
      * The console command description.
@@ -32,9 +32,9 @@ class PatchCommand extends Command
     /**
      * Execute the console command.
      *
-     * @param DatabasePatcher $patcher
+     * @param \DanieleMontecchi\LaravelPatcher\Managers\PatcherManager $patcher
      */
-    public function handle(DatabasePatcher $patcher): void
+    public function handle(PatcherManager $patcher): void
     {
         $patcher->setCommand($this);
         $patcher->run($this->option('pretend'));

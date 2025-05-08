@@ -1,19 +1,19 @@
 <?php
 
-namespace DanieleMontecchi\LaravelDataPatcher;
+namespace DanieleMontecchi\LaravelPatcher\Managers;
 
-use DanieleMontecchi\LaravelDataPatcher\Contracts\Patch;
+use DanieleMontecchi\LaravelPatcher\Contracts\Patch;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 
 /**
- * Class DatabasePatcher
+ * Class PatcherManager
  *
  * Manages the execution and rollback of database patches.
  */
-class DatabasePatcher
+class PatcherManager
 {
     /**
      * Path to the patches directory.

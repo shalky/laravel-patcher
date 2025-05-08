@@ -1,23 +1,23 @@
 <?php
 
-namespace DanieleMontecchi\LaravelDataPatcher\Commands;
+namespace DanieleMontecchi\LaravelPatcher\Commands;
 
-use DanieleMontecchi\LaravelDataPatcher\DatabasePatcher;
+use DanieleMontecchi\LaravelPatcher\Managers\PatcherManager;
 use Illuminate\Console\Command;
 
 /**
- * Class PatchRollbackCommand
+ * Class PatcherRollbackCommand
  *
  * Artisan command to rollback the last applied database patch.
  */
-class PatchRollbackCommand extends Command
+class PatcherRollbackCommand extends Command
 {
     /**
      * The console command signature.
      *
      * @var string
      */
-    protected $signature = 'patch:rollback {--pretend : Show rollback without running}';
+    protected $signature = 'patcher:rollback {--pretend : Show rollback without running}';
 
     /**
      * The console command description.
@@ -29,9 +29,9 @@ class PatchRollbackCommand extends Command
     /**
      * Execute the console command.
      *
-     * @param DatabasePatcher $patcher
+     * @param \DanieleMontecchi\LaravelPatcher\Managers\PatcherManager $patcher
      */
-    public function handle(DatabasePatcher $patcher): void
+    public function handle(PatcherManager $patcher): void
     {
         $pretend = $this->option('pretend');
 
